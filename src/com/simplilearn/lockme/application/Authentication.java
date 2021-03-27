@@ -5,18 +5,24 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Scanner;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 import com.simplilearn.lockme.model.UserCredentials;
 import com.simplilearn.lockme.model.Users;
+
 
 public class Authentication {
 	//input data
 	private static Scanner keyboard;
 	private static Scanner input;
 	private static Scanner lockerInput;
+	private static Scanner readEntry;
 	//output data 
 	private static PrintWriter output;
 	private static PrintWriter lockerOutput;
+	private static PrintWriter logEntry;
 	//model to store data.
 	private static Users users;
 	private static UserCredentials userCredentials;
@@ -30,7 +36,8 @@ public class Authentication {
 	}
 	public static void signInOptions() {
 		System.out.println("1 . Registration ");
-		System.out.println("2 . Login ");
+		System.out.println("2 . Login ");	
+		System.out.println("3.  Sort Database");
 		int option = keyboard.nextInt();
 		switch(option) {
 			case 1 : 
@@ -39,8 +46,11 @@ public class Authentication {
 			case 2 :
 				loginUser();
 				break;
+			case 3 :
+				sortDatabase();
+				break;
 			default :
-				System.out.println("Please select 1 Or 2");
+				System.out.println("Please select 1 to 3");
 				break;
 		}
 		keyboard.close();
@@ -49,7 +59,9 @@ public class Authentication {
 	
 	public static void lockerOptions(String inpUsername) {
 		System.out.println("1 . FETCH ALL STORED CREDENTIALS ");
-		System.out.println("2 . STORED CREDENTIALS ");
+		System.out.println("2 . STORE CREDENTIALS ");
+		
+		System.out.println("4 . EXIT USER ");
 		int option = keyboard.nextInt();
 		switch(option) {
 			case 1 : 
@@ -57,9 +69,12 @@ public class Authentication {
 				break;
 			case 2 :
 				storeCredentials(inpUsername);
+				break;								
+			case 3 :
+				logoutUser();
 				break;
 			default :
-				System.out.println("Please select 1 Or 2");
+				System.out.println("");
 				break;
 		}
 		lockerInput.close();
@@ -81,11 +96,13 @@ public class Authentication {
 		users.setPassword(password);
 		
 		output.println(users.getUsername());
-		output.println(users.getPassword());
+		lockerOutput.println(users.getUsername()+" "+users.getPassword());
+		//output.println(users.getPassword());
 		
 		System.out.println("User Registration Suscessful !");
 		output.close();
-		
+		lockerOutput.close();
+	
 	}
 	public static void loginUser() {
 		System.out.println("==========================================");
@@ -96,11 +113,15 @@ public class Authentication {
 		System.out.println("Enter Username :");
 		String inpUsername = keyboard.next();
 		boolean found = false;
-		while(input.hasNext() && !found) {
-			if(input.next().equals(inpUsername)) {
+		while(lockerInput.hasNext() && !found) {
+			String currentLine = lockerInput.nextLine();
+			String[] loginDetail = currentLine.split(" ");
+		    String username = loginDetail[0];
+		    String passwd = loginDetail[1];
+			if(username.equals(inpUsername)) {
 				System.out.println("Enter Password :");
 				String inpPassword = keyboard.next();
-				if(input.next().equals(inpPassword)) {
+				if(passwd.equals(inpPassword)) {
 					System.out.println("Login Successful ! 200OK");
 					found = true;
 					lockerOptions(inpUsername);
@@ -110,7 +131,7 @@ public class Authentication {
 		}
 		if(!found) {
 			System.out.println("User Not Found : Login Failure : 404");
-		}
+			logoutUser();		}
 		
 	}
 	
@@ -123,6 +144,15 @@ public class Authentication {
 		System.out.println("==========================================");
 		
 	}
+	
+	public static void logoutUser() {
+		System.out.println("=======================================================");
+		System.out.println("*					*");
+		System.out.println("*   THANKS FOR VISITING LOCK ME - SUCCESSFULL EXIT	*");
+		System.out.println("*					*");
+		System.out.println("=======================================================");
+		
+	}
 	//store credentails
 	public static void storeCredentials(String loggedInUser) {
 		System.out.println("==========================================");
@@ -132,7 +162,19 @@ public class Authentication {
 		System.out.println("==========================================");
 		
 		userCredentials.setLoggedInUser(loggedInUser);
-		
+		String fileName=loggedInUser+".txt";
+		File newUserEntry = new File(fileName);
+		PrintWriter out = null;
+		try {
+			if ( newUserEntry.exists() && !newUserEntry.isDirectory() ) {
+				logEntry = new PrintWriter(new FileWriter(new File(fileName), true));
+			}
+			else {
+				logEntry = new PrintWriter( new FileWriter(newUserEntry,true));
+			}
+		}catch (IOException e) {
+			System.out.println("404 : File Not Found ");
+		}
 		System.out.println("Enter Site Name :");
 		String siteName = keyboard.next();
 		userCredentials.setSiteName(siteName);
@@ -145,13 +187,15 @@ public class Authentication {
 		String password = keyboard.next();
 		userCredentials.setPassword(password);
 		
-		lockerOutput.println(userCredentials.getLoggedInUser());
-		lockerOutput.println(userCredentials.getSiteName());
-		lockerOutput.println(userCredentials.getUsername());
-		lockerOutput.println(userCredentials.getPassword());
+		//logEntry.println(userCredentials.getLoggedInUser());
+		logEntry.println(userCredentials.getSiteName());
+		logEntry.println(userCredentials.getUsername());
+		logEntry.println(userCredentials.getPassword());
 		
 		System.out.println("YOUR CREDS ARE STORED AND SECURED!");
-		lockerOutput.close();		
+		logEntry.close();	
+		
+		logoutUser();
 	}
 	
 	//fetch credentials
@@ -163,17 +207,60 @@ public class Authentication {
 		System.out.println("*					*");
 		System.out.println("==========================================");
 		System.out.println(inpUsername);
-		
-		
-		while(lockerInput.hasNext()) {
-//			System.out.println(lockerInput.hasNext());
-			if(lockerInput.next().equals(inpUsername)) {
-				System.out.println("Site Name: "+lockerInput.next());
-				System.out.println("User Name: "+lockerInput.next());
-				System.out.println("User Password: "+lockerInput.next());
+				
+		String fileName=inpUsername+".txt";
+		File userEntry = new File(fileName);		
+		try {
+			if ( userEntry.exists() && !userEntry.isDirectory() ) {				
+				readEntry = new Scanner(userEntry);
 			}
+			else {
+				System.out.println("User File is not available ");	
+				logoutUser();
+				return;
+			}
+		}catch (IOException e) {
+			System.out.println("404 : File Not Found ");
 		}
-		
+	
+		while(readEntry.hasNext()) {
+//			System.out.println(lockerInput.hasNext());
+			//if(lockerInput.next().equals(inpUsername)) {
+				System.out.println("Site Name: "+readEntry.next());
+				System.out.println("User Name: "+readEntry.next());
+				System.out.println("User Password: "+readEntry.next());
+			//}
+		}
+		readEntry.close();
+		logoutUser();
+	}
+	
+	public static void sortDatabase() {
+		System.out.println("==========================================");
+		System.out.println("*					*");
+		System.out.println("*   WELCOME TO DIGITAL LOCKER 	 *");
+		System.out.println("*   SORTED DATABASE IS 	 *");
+		System.out.println("*					*");
+		System.out.println("==========================================");
+				
+		ArrayList<String> entries = new ArrayList<String>();
+
+		if (!input.hasNext()) {
+			System.out.println("There is no database entry yet");
+			logoutUser();
+			return;
+		}
+		while(input.hasNext()) {
+			String currentLine = input.nextLine();			
+		    entries.add(currentLine);
+		}		
+		Collections.sort(entries);
+		for (String entry : entries)
+		{
+			System.out.println(entry);
+		}
+		input.close();
+		logoutUser();
 	}
 	
 	public static void initApp() {
@@ -204,5 +291,6 @@ public class Authentication {
 		}
 		
 	}
-
+/////////sort	
+	
 }

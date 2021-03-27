@@ -8,7 +8,7 @@ public class UserCredentials {
 	private String password;
 	
 	public UserCredentials() {}
-
+	
 	public UserCredentials(String siteName, String loggedInUser, String username, String password) {
 		this.siteName = siteName;
 		this.loggedInUser = loggedInUser;
