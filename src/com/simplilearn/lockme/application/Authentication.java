@@ -60,7 +60,7 @@ public class Authentication {
 	public static void lockerOptions(String inpUsername) {
 		System.out.println("1 . FETCH ALL STORED CREDENTIALS ");
 		System.out.println("2 . STORE CREDENTIALS ");
-		
+		System.out.println("3 . DELETE CREDENTIALS ");
 		System.out.println("4 . EXIT USER ");
 		int option = keyboard.nextInt();
 		switch(option) {
@@ -69,8 +69,11 @@ public class Authentication {
 				break;
 			case 2 :
 				storeCredentials(inpUsername);
-				break;								
-			case 3 :
+				break;	
+			case 3 : 
+				 deleteCredentials(inpUsername);
+				 break;
+			case 4 :
 				logoutUser();
 				break;
 			default :
@@ -262,6 +265,34 @@ public class Authentication {
 		input.close();
 		logoutUser();
 	}
+	//fetch credentials
+	public static void deleteCredentials(String inpUsername) {
+		System.out.println("==========================================");
+		System.out.println("*					*");
+		System.out.println("*   WELCOME TO DIGITAL LOCKER 	 *");
+		System.out.println("*   YOUR CREDS ARE 	 *");
+		System.out.println("*					*");
+		System.out.println("==========================================");
+		System.out.println(inpUsername);
+				
+		String fileName=inpUsername+".txt";
+		File userEntry = new File(fileName);		
+		
+		if ( userEntry.exists() && !userEntry.isDirectory() ) {				
+			userEntry.delete();
+			System.out.println("User File is deleted ");	
+			logoutUser();
+			return;				
+		}
+		else {
+			System.out.println("User File is not available ");	
+			logoutUser();
+			return;
+		}
+		
+		
+	}
+	
 	
 	public static void initApp() {
 
